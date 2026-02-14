@@ -5,95 +5,103 @@ let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
 
-// Task 6: Register a new user
 public_users.post("/register", (req,res) => {
-  const username = req.body.username; // Extract username from request body
-  const password = req.body.password; // Extract password from request body
+  const username = req.body.username;
+  const password = req.body.password;
 
   if (username && password) {
-    // Check if the username already exists in the system
     const userExists = users.some((user) => user.username === username);
     
     if (!userExists) {
-      // Add the new user to the global users array
       users.push({"username": username, "password": password});
       return res.status(200).json({message: "User successfully registered. Now you can login"});
     } else {
-      // Return error if the user is already registered
       return res.status(404).json({message: "User already exists!"});
     }
   }
-  // Return error if username or password is not provided
   return res.status(404).json({message: "Unable to register user (Username/Password missing)."});
 });
 
-// Task 1: Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  // Returns the entire books object as a formatted JSON string
-  res.send(JSON.stringify(books, null, 4));
+// Task 10: Get the book list available in the shop using Async/Await
+public_users.get('/', async function (req, res) {
+  try {
+    const getBooks = () => {
+      return new Promise((resolve) => {
+        resolve(books);
+      });
+    };
+    const bookList = await getBooks();
+    res.status(200).send(JSON.stringify(bookList, null, 4));
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving book list" });
+  }
 });
 
-// Task 2: Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  const isbn = req.params.isbn; // Retrieve the ISBN from the request URL
-  
-  if (books[isbn]) {
-      // If the book exists, return it formatted neatly
-      res.send(JSON.stringify(books[isbn], null, 4));
-  } else {
-      // If the book is not found, return a 404 error
-      res.status(404).json({message: "Book not found"});
-  }
- });
-  
-// Task 3: Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  const author = req.params.author;
-  const bookKeys = Object.keys(books); // Get all the ISBN keys from the books object
-  const booksByAuthor = []; // Create an array to hold matching books
-
-  // Loop through all keys to find if the author matches
-  bookKeys.forEach(key => {
-    if (books[key].author === author) {
-      booksByAuthor.push(books[key]);
+// Task 11: Get book details based on ISBN using Promises
+public_users.get('/isbn/:isbn', function (req, res) {
+  const isbn = req.params.isbn;
+  const findBook = new Promise((resolve, reject) => {
+    if (books[isbn]) {
+      resolve(books[isbn]);
+    } else {
+      reject({ status: 404, message: "Book not found" });
     }
   });
 
-  // Return the list of books found, or a message if none exist
-  if (booksByAuthor.length > 0) {
-    res.send(JSON.stringify(booksByAuthor, null, 4));
-  } else {
-    res.status(404).json({message: "Author not found"});
+  findBook
+    .then((book) => res.status(200).send(JSON.stringify(book, null, 4)))
+    .catch((err) => res.status(err.status).json({ message: err.message }));
+});
+
+// Task 12: Get book details based on author using Async/Await
+public_users.get('/author/:author', async function (req, res) {
+  try {
+    const author = req.params.author;
+    const getBooksByAuthor = () => {
+      return new Promise((resolve) => {
+        const bookKeys = Object.keys(books);
+        const filteredBooks = bookKeys
+          .filter(key => books[key].author === author)
+          .map(key => books[key]);
+        resolve(filteredBooks);
+      });
+    };
+    const result = await getBooksByAuthor();
+    if (result.length > 0) {
+      res.status(200).send(JSON.stringify(result, null, 4));
+    } else {
+      res.status(404).json({ message: "Author not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error searching by author" });
   }
 });
 
-// Task 4: Get all books based on title
-public_users.get('/title/:title',function (req, res) {
+// Task 13: Get all books based on title using Promises
+public_users.get('/title/:title', function (req, res) {
   const title = req.params.title;
-  const bookKeys = Object.keys(books); // Get all the ISBN keys
-  const booksByTitle = []; // Create an array to hold matching books
-
-  // Loop through all keys to find if the title matches
-  bookKeys.forEach(key => {
-    if (books[key].title === title) {
-      booksByTitle.push(books[key]);
+  const findByTitle = new Promise((resolve, reject) => {
+    const bookKeys = Object.keys(books);
+    const filteredBooks = bookKeys
+      .filter(key => books[key].title === title)
+      .map(key => books[key]);
+    
+    if (filteredBooks.length > 0) {
+      resolve(filteredBooks);
+    } else {
+      reject({ status: 404, message: "Title not found" });
     }
   });
 
-  // Return the list of books found, or a message if none exist
-  if (booksByTitle.length > 0) {
-    res.send(JSON.stringify(booksByTitle, null, 4));
-  } else {
-    res.status(404).json({message: "Title not found"});
-  }
+  findByTitle
+    .then((result) => res.status(200).send(JSON.stringify(result, null, 4)))
+    .catch((err) => res.status(err.status).json({ message: err.message }));
 });
 
-// Task 5: Get book review
+// Get book review
 public_users.get('/review/:isbn',function (req, res) {
-  const isbn = req.params.isbn; // Retrieve ISBN from the request
-  
+  const isbn = req.params.isbn;
   if (books[isbn]) {
-      // Return only the reviews of the specific book
       res.send(JSON.stringify(books[isbn].reviews, null, 4));
   } else {
       res.status(404).json({message: "Book not found"});
