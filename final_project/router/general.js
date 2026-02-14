@@ -3,16 +3,19 @@ let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
-const axios = require('axios'); // Import Axios as required by the grader
+const axios = require('axios'); // Required for Task 11-13
 
 const BASE_URL = "http://localhost:5000";
+
+// Internal endpoint to provide books data for Axios calls
+public_users.get('/books', function (req, res) {
+    res.send(JSON.stringify(books, null, 4));
+});
 
 // Task 10: Get the book list available in the shop using async-await with Axios
 public_users.get('/', async function (req, res) {
   try {
-    // In a real scenario, this would call an external API. 
-    // Here we simulate the async call to our own books database.
-    const response = await axios.get(`${BASE_URL}/books`); 
+    const response = await axios.get(`${BASE_URL}/books`);
     return res.status(200).json(response.data);
   } catch (error) {
     return res.status(500).json({message: "Error retrieving books", error: error.message});
@@ -36,7 +39,7 @@ public_users.get('/isbn/:isbn', function (req, res) {
     });
 });
   
-// Task 12: Get book details based on author
+// Task 12: Get book details based on author using async-await with Axios
 public_users.get('/author/:author', async function (req, res) {
   const author = req.params.author;
   try {
@@ -54,7 +57,7 @@ public_users.get('/author/:author', async function (req, res) {
   }
 });
 
-// Task 13: Get all books based on title
+// Task 13: Get all books based on title using async-await with Axios
 public_users.get('/title/:title', async function (req, res) {
   const title = req.params.title;
   try {
@@ -70,11 +73,6 @@ public_users.get('/title/:title', async function (req, res) {
   } catch (error) {
     return res.status(500).json({message: "Error fetching books by title"});
   }
-});
-
-// Helper endpoint to serve the books data for Axios calls
-public_users.get('/books', function (req, res) {
-    res.send(JSON.stringify(books, null, 4));
 });
 
 module.exports.general = public_users;
