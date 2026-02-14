@@ -10,10 +10,10 @@ public_users.post("/register", (req,res) => {
   return res.status(300).json({message: "Yet to be implemented"});
 });
 
-// Get the book list available in the shop
+// Task 1: Get the book list available in the shop
 public_users.get('/',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  // Returns the entire books object as a formatted JSON string
+  res.send(JSON.stringify(books, null, 4));
 });
 
 // Get book details based on ISBN
@@ -28,7 +28,7 @@ public_users.get('/author/:author',function (req, res) {
   return res.status(300).json({message: "Yet to be implemented"});
 });
 
-// Get all books based on title
+//  Get all books based on title
 public_users.get('/title/:title',function (req, res) {
   //Write your code here
   return res.status(300).json({message: "Yet to be implemented"});
