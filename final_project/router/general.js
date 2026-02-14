@@ -29,19 +29,34 @@ public_users.get('/isbn/:isbn',function (req, res) {
   }
  });
   
-// Get book details based on author
+// Task 3: Get book details based on author
 public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const author = req.params.author;
+  const bookKeys = Object.keys(books); // Get all the ISBN keys from the books object
+  const booksByAuthor = []; // Create an array to hold matching books
+
+  // Loop through all keys to find if the author matches
+  bookKeys.forEach(key => {
+    if (books[key].author === author) {
+      booksByAuthor.push(books[key]);
+    }
+  });
+
+  // Return the list of books found, or a message if none exist
+  if (booksByAuthor.length > 0) {
+    res.send(JSON.stringify(booksByAuthor, null, 4));
+  } else {
+    res.status(404).json({message: "Author not found"});
+  }
 });
 
-//  Get all books based on title
+// Get all books based on title
 public_users.get('/title/:title',function (req, res) {
   //Write your code here
   return res.status(300).json({message: "Yet to be implemented"});
 });
 
-//  Get book review
+// Get book review
 public_users.get('/review/:isbn',function (req, res) {
   //Write your code here
   return res.status(300).json({message: "Yet to be implemented"});
